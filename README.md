@@ -68,6 +68,11 @@ rm -rf .next && npm run dev
    Use a **different** `AUTH_PASSWORD` and `AUTH_SECRET` than your local ones.
 3. Deploy. The default build command and output work unchanged.
 
+The build itself does not need the variables — the Supabase client is created on
+first request, not at module scope, so `next build` succeeds without them. If they
+are missing at runtime the app returns a 500 naming the variable instead. Set them
+before you expect the app to load.
+
 Supabase is on `ap-south-1`, so latency is best with the Vercel region set to Mumbai (`bom1`).
 
 ## Database

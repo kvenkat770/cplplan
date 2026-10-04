@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  let supabase;
+  try {
+    supabase = getSupabase();
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Database is not configured" }, { status: 500 });
+  }
+
   const [settings, loans, phases, activities, actuals] = await Promise.all([
     supabase.from("settings").select("*").eq("id", "default").single(),
     supabase.from("loans").select("*").order("sort"),

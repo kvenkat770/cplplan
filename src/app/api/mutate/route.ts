@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /** Only these tables and columns can be touched, whatever the request says. */
 const ALLOWED: Record<string, string[]> = {
@@ -32,6 +33,13 @@ function clean(table: string, data: unknown): Record<string, unknown> {
 }
 
 export async function POST(req: Request) {
+  let supabase;
+  try {
+    supabase = getSupabase();
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Database is not configured" }, { status: 500 });
+  }
+
   let body: { table?: string; op?: string; id?: string; data?: unknown };
   try {
     body = await req.json();
