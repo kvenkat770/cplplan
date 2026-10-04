@@ -1,22 +1,22 @@
 # cplplan
 
 A 25-month cash-flow model for clearing personal debt and funding a CPL, Oct 2026 → Oct 2028.
-Next.js 14 + TypeScript + Tailwind, with Supabase as the store. Everything on screen is editable
-and the projection re-runs on every change.
+Next.js 14 + TypeScript + Tailwind, Supabase as the store, behind a password.
 
-## What it does
+Figures come from `debt_wealth_pilot_master_plan.xlsx` (Assumptions and Debt Plan sheets).
 
-Four views:
+## Screens
 
-- **Now** — balances, EMIs, free cash, and the snowball ladder. Tap any loan to edit it.
-- **Flight plan** — phases, activities and milestones. Tick, edit, move between months, add, delete.
-- **Cash flow** — month-by-month placement of every rupee, plus a log for what you *actually* paid.
-- **Simulate** — income, levers, prepayment priority, the sale waterfall and the no-income stress test.
+- **Overview** — total debt, EMIs, free cash, what's open now, the loan list, the snowball, the debt/corpus chart.
+- **Plan** — phases, activities and milestones. Tick, reword, re-month, add, delete.
+- **Months** — every month expandable to its full placement, plus a log for what you actually paid.
+- **Model** — results first, then the stress test, the levers, prepayment order and the sale waterfall.
+
+Editing happens in a bottom sheet rather than inline, so the page never shifts under you.
 
 ## The engine
 
-`src/lib/engine.ts` is pure and data-driven — there is no hardcoded plan inside it. Each loan row
-carries its own behaviour:
+`src/lib/engine.ts` is pure and data-driven — no plan is hardcoded. Each loan row carries its own behaviour:
 
 | Column | What it does |
 | --- | --- |
@@ -27,35 +27,50 @@ carries its own behaviour:
 | `prepay_blocked_until_sale` | Hands off until the property sells |
 | `sale_rank` | Order the sale proceeds clear loans |
 
-Each month the engine pays scheduled EMIs, funds the next planned purchase, runs any foreclosure,
-applies the sale waterfall, tops the cash floor back up, then sends what is left down the prepay
-queue and finally into the emergency fund and the CPL fund.
+Each month it pays scheduled EMIs, funds the next planned purchase, runs any foreclosure, applies the
+sale waterfall, tops the cash floor back up, then sends what is left down the prepay queue and finally
+into the emergency fund and the CPL fund.
+
+## Security
+
+- The app sits behind a password (`AUTH_PASSWORD`), checked in constant time, with a signed
+  httpOnly session cookie (`AUTH_SECRET`). `src/middleware.ts` gates every route; API routes return
+  401 rather than redirecting.
+- **The Supabase key is server-side only.** The env vars are `SUPABASE_URL` / `SUPABASE_ANON_KEY`,
+  deliberately without the `NEXT_PUBLIC_` prefix, so they never enter the browser bundle. The browser
+  talks to `/api/plan` and `/api/mutate`, which sit behind the same gate.
+- `/api/mutate` allowlists both tables and columns, so a crafted request cannot touch anything else.
+- RLS is enabled on every table but the policies grant `anon` full access. That is only safe because
+  the key never leaves the server. If you ever expose the key, rotate it.
 
 ## Running it
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in your Supabase URL and anon key
+cp .env.example .env.local   # fill in all four values
 npm run dev
 ```
 
 Then open http://localhost:3002.
 
+If you ever get a blank page, it means `.next` went stale (usually from running `next build` while
+the dev server was live). Fix:
+
+```bash
+rm -rf .next && npm run dev
+```
+
+## Deploying to Vercel
+
+1. Import the repo at vercel.com/new.
+2. Add all four environment variables for Production, Preview and Development:
+   `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `AUTH_PASSWORD`, `AUTH_SECRET`.
+   Use a **different** `AUTH_PASSWORD` and `AUTH_SECRET` than your local ones.
+3. Deploy. The default build command and output work unchanged.
+
+Supabase is on `ap-south-1`, so latency is best with the Vercel region set to Mumbai (`bom1`).
+
 ## Database
 
-Schema lives in `supabase/migrations/`. Five tables: `settings` (one row), `loans`, `phases`,
-`activities`, `actuals`.
-
-## Security — read this before deploying
-
-This build has **no authentication**, by design: it is meant to run on localhost. RLS is enabled but
-the policies grant the `anon` role full read and write on every table, which is what lets the app
-work without a login.
-
-That means anyone holding the project URL and anon key can read and write your financial data. The
-key is in `.env.local`, which is gitignored and not in this repo — keep it that way.
-
-Before putting this on a public URL, do both of these:
-
-1. Add auth (Supabase Auth, or a password gate in middleware).
-2. Replace the `anon_all` policies with ones scoped to an authenticated user id.
+`supabase/migrations/` holds the schema, `supabase/seed.sql` the starting data. Five tables:
+`settings` (one row), `loans`, `phases`, `activities`, `actuals`.

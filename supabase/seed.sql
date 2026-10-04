@@ -1,21 +1,22 @@
--- Seed data for cplplan. Generated from the live database.
+-- Seed data for cplplan, from debt_wealth_pilot_master_plan.xlsx.
 -- Run after the migration in supabase/migrations/.
 
 insert into public.settings (id, salary, expenses, chit_amount, chit_end_month, savings_start, start_year, start_month, horizon_months, liquid_floor, emergency_target, sale_month, sale_net, home_prepay_cap, cpl_budget, pilot_loan_rate, pilot_loan_tenure) values
-  ($$default$$, 210000, 5000, 30000, 24, 300000, 2026, 10, 25, 100000, 350000, 14, 5000000, 1800000, 5200000, 0.11, 84);
+  ($$default$$, 210000, 5000, 30000, 24, 300000, 2026, 10, 25, 100000, 500000, 14, 5000000, 1800000, 5250000, 0.11, 84);
 
 insert into public.loans (name, lender, balance, rate, emi, sort, refi_month, refi_rate, refi_emi, starts_month, purchase_price, down_payment, tenure_months, prepay_rank, prepay_blocked_until_sale, sale_rank, foreclose_month) values
-  ($$Home loan$$, $$13% — transfer pending$$, 4429000, 0.13, 52253, 1, 1, 0.09, 41000, null, null, null, null, null, true, 3, null),
-  ($$HDFC personal loan$$, $$unsecured, 9.99%$$, 1420000, 0.0999, 27781, 2, null, null, null, null, null, null, null, 2, false, 1, null),
-  ($$Kotak personal loan$$, $$your most expensive rupee$$, 641000, 0.1634, 37269, 3, null, null, null, null, null, null, null, 1, false, null, null),
-  ($$Equitas insurance loan$$, $$the ₹67K nuisance$$, 67221, 0.11, 1308, 4, null, null, null, null, null, null, null, null, false, null, 3),
-  ($$Thar car loan$$, $$9.5% over 60 months$$, 0, 0.095, 0, 5, null, null, null, 5, 1600000, 500000, 60, 3, false, 2, null);
+  ($$Equitas Home Loan$$, $$13% — balance transfer is priority 1$$, 4429334, 0.13, 52253, 1, 1, 0.09, 40220, null, null, null, null, null, true, 3, null),
+  ($$HDFC personal loan$$, $$unsecured, 9.99%$$, 1422204, 0.0999, 27781, 2, null, null, null, null, null, null, null, 2, false, 1, null),
+  ($$Kotak personal loan$$, $$16.34% — your most expensive rupee$$, 640531, 0.1634, 37269, 3, null, null, null, null, null, null, null, 1, false, null, null),
+  ($$Equitas Insurance Home$$, $$13% — the ₹67K nuisance$$, 67221, 0.13, 1308, 4, null, null, null, null, null, null, null, null, false, null, 3),
+  ($$Thar car loan$$, $$~₹23K EMI, 60 months$$, 0, 0.095, 0, 5, null, null, null, 5, 1600000, 500000, 60, 3, false, 2, null);
 
 insert into public.phases (label, title, from_month, to_month, sort) values
-  ($$Phase 1$$, $$Cut the interest, buy the Thar, kill Kotak$$, 0, 8, 1),
-  ($$Phase 2$$, $$Eliminate the personal debt$$, 9, 14, 2),
-  ($$Phase 3$$, $$Reset on the sale proceeds$$, 15, 20, 3),
-  ($$Phase 4$$, $$Build the corpus, borrow only the gap$$, 21, 24, 4);
+  ($$Phase 1$$, $$Setup and balance transfer$$, 0, 2, 1),
+  ($$Phase 1$$, $$Thar and Kotak closure$$, 3, 8, 2),
+  ($$Phase 2$$, $$HDFC attack and property sale$$, 9, 14, 3),
+  ($$Phase 3$$, $$Aviation corpus$$, 15, 23, 4),
+  ($$Phase 4$$, $$CPL start$$, 24, 24, 5);
 
 insert into public.activities (month_index, title, detail, is_milestone, done, sort) values
   (0, $$Start the home-loan balance transfer$$, $$Your number one task — documents in by 15 October. ₹44.29L at 13% moves to a target of 8.5–9.5%. Do not pick on EMI alone: compare rate, remaining tenure, processing and legal charges, and the foreclosure terms.$$, false, false, 1),
